@@ -1,0 +1,60 @@
+using OfficeOpenXml;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Web.Http;
+
+namespace testExcelExport.Controllers
+{
+    public class Employee
+    {
+        public string Name { get; set; }
+        public string Email { get; set; }
+        public string Phone { get; set; }
+
+    }
+    public class DownloadController : ApiController
+    {
+        List<Employee> EmpList = new List<Employee>();
+        public DownloadController()
+        {
+            EmpList.Add(new Employee { Name = "Ram", Email = "ram@techbrij.com", Phone = "111-222-3333" });
+            EmpList.Add(new Employee { Name = "Ram", Email = "ram@techbrij.com", Phone = "111-222-3333" });
+            EmpList.Add(new Employee { Name = "Ram", Email = "ram@techbrij.com", Phone = "111-222-3333" });
+            EmpList.Add(new Employee { Name = "Ram", Email = "ram@techbrij.com", Phone = "111-222-3333" });
+            EmpList.Add(new Employee { Name = "Ram", Email = "ram@techbrij.com", Phone = "111-222-3333" });
+            EmpList.Add(new Employee { Name = "Ram", Email = "ram@techbrij.com", Phone = "111-222-3333" });
+            EmpList.Add(new Employee { Name = "Ram", Email = "ram@techbrij.com", Phone = "111-222-3333" });
+            EmpList.Add(new Employee { Name = "Ram", Email = "ram@techbrij.com", Phone = "111-222-3333" });
+            EmpList.Add(new Employee { Name = "Ram", Email = "ram@techbrij.com", Phone = "111-222-3333" });
+            EmpList.Add(new Employee { Name = "Ram", Email = "ram@techbrij.com", Phone = "111-222-3333" });
+        }
+
+        [Route("api/downloadEmpList")]
+        [HttpGet]
+        public HttpResponseMessage DownloadEmpList()
+        {
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+            ExcelPackage excelPackage = new ExcelPackage();
+            var workSheet = excelPackage.Workbook.Worksheets.Add("Sheet1");
+            workSheet.Cells[1, 1].LoadFromCollection(EmpList, true);
+            var response = Request.CreateResponse(HttpStatusCode.OK);
+
+            var memoryStream = new MemoryStream();
+                excelPackage.SaveAs(memoryStream);
+                response.Content = new ByteArrayContent(memoryStream.ToArray()) ;
+
+                response.Content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+                response.Content.Headers.ContentDisposition = new ContentDispositionHeaderValue("attachment");
+                response.Content.Headers.ContentDisposition.FileName = "EmpLists.xlsx";
+            return response;
+
+
+        }
+    }
+}
