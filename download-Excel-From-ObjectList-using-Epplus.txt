@@ -1,3 +1,5 @@
+
+
 using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
@@ -17,7 +19,7 @@ namespace testExcelExport.Controllers
         public string Phone { get; set; }
 
     }
-    public class DownloadController : ApiController
+    public class DownloadController : ApiController // Web API Controller
     {
         List<Employee> EmpList = new List<Employee>();
         public DownloadController()
@@ -58,3 +60,42 @@ namespace testExcelExport.Controllers
         }
     }
 }
+
+
+// MVC Controller
+ public class ReportDownloaderController : Controller
+    {
+        // GET: ReportDownloader
+        public ActionResult Download(string queueName)
+        {
+            var fileDownloadName = queueName + " - " + DateTime.Now.ToString() + " - Report.xlsx";
+            var contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+
+            List<Queue> queues = (List<Queue>)Session["DummyQueues"];
+
+            var queueItems = queues.Where(q => q.Name == queueName).FirstOrDefault().QueueItems
+                .Select(x => new QueueItemVM()
+                {
+                    CreationTime = x.CreationTime.ToString(),
+                    EndProcessing = x.EndProcessing.ToString(),
+                    StartProcessing = x.StartProcessing.ToString(),
+                    RetryNumber = x.RetryNumber,
+                    Status = x.Status.ToString(),
+                    SpecificContent = ConvertObjectToCSS(x.SpecificContent)
+                });
+
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+            ExcelPackage excelPackage = new ExcelPackage();
+            var workSheet = excelPackage.Workbook.Worksheets.Add("Sheet1");
+            workSheet.Cells[1, 1].LoadFromCollection(queueItems, true);
+
+            var memoryStream = new MemoryStream();
+            excelPackage.SaveAs(memoryStream);
+            memoryStream.Position = 0;
+
+            var fsr = new FileStreamResult(memoryStream, contentType);
+            fsr.FileDownloadName = fileDownloadName;
+            return fsr;
+
+        }
