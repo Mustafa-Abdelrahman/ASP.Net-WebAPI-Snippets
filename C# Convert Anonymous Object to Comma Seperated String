@@ -1,0 +1,15 @@
+public string ConvertObjectToCSS(object obj)
+        {
+            var result = "";
+
+            if (obj !=null)
+            {
+                PropertyInfo[] pi = obj.GetType().GetProperties();
+                foreach (PropertyInfo p in pi)
+                {
+                    result += p.Name + ":" + p.GetValue(obj).ToString() + ", ";
+                }
+            }
+            
+            return result;
+        }
